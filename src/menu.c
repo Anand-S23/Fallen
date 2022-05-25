@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "main.h"
 
 void render_menu(void)
 {

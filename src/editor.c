@@ -1,4 +1,4 @@
-#include "editor.h"
+#include "main.h"
 
 void render_editor(void)
 {
