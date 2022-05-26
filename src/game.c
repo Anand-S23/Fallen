@@ -5,13 +5,6 @@
 static void init_game(app_t *app)
 {
     game_data_t *data = &app->game_data;
-
-    int32_t width, height, num_comps;
-    void *texture_data = NULL;
-    gs_util_load_texture_data_from_file("./assets/characters.png",
-                                        &width, &height, &num_comps,
-                                        &texture_data, 1);
-
 }
 
 extern void update_game(app_t *app)

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <dlfcn.h> 
+#include "dll_loader.h"
 
 #include "main.h"
 #include "renderer.c"
@@ -23,12 +23,12 @@ static void (*update_state[])(app_t *app) = {
 static void load_code(reload_t *reloader)
 {
     reloader->is_valid = 0;
-    reloader->game_handle = dlopen("./build/fallen.so", RTLD_NOW);
+    reloader->game_handle = dl_open("./build/fallen.so");
 
     if (reloader->game_handle)
     {
-        reloader->update_game = (update_game_func_t *)dlsym(reloader->game_handle,
-                                                            "update_game");
+        reloader->update_game = (update_game_func_t *)dl_load_function(reloader->game_handle,
+                                                                       "update_game");
 
         if (reloader->update_game)
         {
@@ -39,19 +39,15 @@ static void load_code(reload_t *reloader)
             printf("invalid\n");
         }
     }
-    else
-    {
-        printf("dlopen error: %s\n", dlerror());
-    }
 }
 
 static void unload_code(reload_t *reloader)
 {
     if (reloader->is_valid)
     {
-        if (dlclose(reloader->game_handle) != 0)
+        if (!dl_close(reloader->game_handle))
         {
-            printf("dlclose error: %s\n", dlerror());
+            printf("error\n");
         }
     }
 }
