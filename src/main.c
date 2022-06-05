@@ -9,7 +9,6 @@
 #include "game.c"
 
 static app_t app = {0};
-static reload_t reloader = {0};
 
 /*
 static void (*update_state[])(app_t *app) = {
@@ -20,39 +19,42 @@ static void (*update_state[])(app_t *app) = {
 };
 */
 
-static void load_code(reload_t *reloader)
+static game_code_t load_code(void)
 {
-    reloader->is_valid = 0;
-    reloader->game_handle = dl_open("./build/fallen.so");
+    game_code_t gc = {0};
 
-    if (reloader->game_handle)
+    dl_copy_dll("./build/fallen.so", "./build/temp_fallen_2.so");
+    gc.game_handle = dl_open("./build/temp_fallen_2.so");
+    if (gc.game_handle)
     {
-        reloader->update_game = (update_game_func_t *)dl_load_function(reloader->game_handle,
-                                                                       "update_game");
+        gc.update_game = (game_func_t *)dl_load_function(gc.game_handle, "update_game");
 
-        if (reloader->update_game)
-        {
-            reloader->is_valid = 1;
-        }
-        else
-        {
-            printf("invalid\n");
-        }
+        gc.is_valid = !!(gc.update_game);
     }
+
+    if (!gc.is_valid)
+    {
+        printf("game code is not valid\n");
+        gc.update_game = (game_func_t *)game_func_stub;
+    }
+
+    return gc;
 }
 
-static void unload_code(reload_t *reloader)
+static void unload_code(game_code_t *game_code)
 {
-    if (reloader->is_valid)
+    if (game_code->game_handle)
     {
-        if (!dl_close(reloader->game_handle))
-        {
-            printf("error\n");
-        }
+        dl_close(game_code->game_handle);
     }
+
+    game_code->is_valid = 0;
+    game_code->update_game = (game_func_t *)game_func_stub;
 }
 
 // Core //
+
+game_code_t game_code;
 
 void init(void)
 {
@@ -65,23 +67,25 @@ void init(void)
     };
 
     init_renderer(&app.renderer);
-
-    reloader = (reload_t) {0};
+    game_code = load_code();
 }
 
 void update(void)
 {
-    load_code(&reloader);
+    // game_code_t game_code = load_code();
+    if (gs_platform_key_pressed(GS_KEYCODE_LSHIFT))
+    {
+        printf("Pressing\n");
+        unload_code(&game_code);
+        game_code = load_code();
+    }
     
     // Update app based on state
-    if (reloader.is_valid)
-    {
-        begin_render_pass(&app.renderer);
-        update_game(&app);
-        end_render_pass(&app.renderer);
-    }
+    begin_render_pass(&app.renderer);
+    game_code.update_game(&app);
+    end_render_pass(&app.renderer);
 
-    unload_code(&reloader);
+    // unload_code(&game_code);
 }
 
 gs_app_desc_t gs_main(int32_t argc, char** argv)
