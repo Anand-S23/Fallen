@@ -1,10 +1,6 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <gunslinger/gs.h>
-
-#define MAX_RENDER_OBJECTS 1000
-
 // Shaders
 
 // TODO: Move shaders out into own files
@@ -41,38 +37,15 @@ static const char* f_src = GS_VERSION_STR
         "frag_color = texture(u_tex, uv);\n"
     "}\0";
 
-
-// TODO: See if this is needed
-typedef enum rqi_type_t
-{
-    RQI_TYPE_texture,
-    RQI_TYPE_MAX
-} rqi_type_t;
-
-typedef struct render_queue_item_t
-{
-    u32 offset;
-    u8 data_count;
-    gs_handle(gs_graphics_texture_t) texture;
-} render_queue_item_t;
-
-typedef struct render_queue_t
-{
-    u32 count;
-    u32 buffer_used;
-    u32 buffer_size;
-    void *buffer;
-    render_queue_item_t items[MAX_RENDER_OBJECTS];
-} render_queue_t;
+#define TEXTURE_DATA_COUNT 16
 
 typedef struct renderer_t
 {
     gs_command_buffer_t command_buffer;
-    render_queue_t render_queue;
     gs_mat4 projection;
     f32 viewport_width;
     f32 viewport_height;
-    gs_graphics_clear_desc_t clear;
+    f32 clear_color[4];
 
     gs_handle(gs_graphics_vertex_buffer_t) texture_vbo;
     gs_handle(gs_graphics_index_buffer_t) texture_ibo;
@@ -81,12 +54,6 @@ typedef struct renderer_t
 
     gs_handle(gs_graphics_uniform_t) u_projection;
     gs_handle(gs_graphics_uniform_t) u_tex;
-
-    void (*set_viewport)(struct renderer_t *renderer, f32 vw, f32 vh);
-    void (*set_clear_color)(struct renderer_t *renderer, f32 r, f32 g, f32 b, f32 a);
-    void (*draw_texture)(render_queue_t *rq, gs_vec2 pos, gs_vec2 size,
-                         gs_handle(gs_graphics_texture_t) texture);
-    void (*test_f)(struct renderer_t *renderer);
 } renderer_t;
 
 #endif
