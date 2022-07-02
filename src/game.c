@@ -46,8 +46,8 @@ void update_game(app_t *app)
 
     // Render
     begin_render_pass(renderer);
-    renderer_draw_texture(renderer, gs_v2(0, 0), gs_v2(data->width, data->height), data->tex);
     renderer_draw_texture(renderer, gs_v2(data->x, data->y), gs_v2(data->width, data->height), data->tex);
+    renderer_draw_texture(renderer, gs_v2(0, 0), gs_v2(data->width, data->height), data->tex);
     end_render_pass(renderer);
 }
 
